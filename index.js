@@ -4,6 +4,14 @@ path = require('path');
 rework = require('rework');
 reworkUrl = require('rework-plugin-url');
 through = require('through');
+/*
+ * options
+ *   root 根目录
+ *   convertTo 转换到relative相对路径，absolute约对路径，http网络路径
+ *   match 匹配的类型
+ *   ignore 过滤
+ *
+ */
 urlConvert = function(file, options){
   var filePath, cssContent;
   filePath = path.basename(file);
