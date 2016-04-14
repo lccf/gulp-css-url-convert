@@ -1,13 +1,13 @@
 path = require \path
 rework = require \rework
 reworkUrl = require \rework-plugin-url
-through = require \through
+through = require \through2
 
 /*
  * options
  *   root 根目录
- *   convertTo 路径
- *   convertType 转换到relative相对路径，absolute约对路径，network网络路径
+ *   path 路径
+ *   type 转换到relative相对路径，absolute约对路径，network网络路径
  *   match 匹配的类型
  *   ignore 过滤
  *
@@ -22,20 +22,50 @@ isNetworkUrl = (url) ->
 isRelative = (url) ->
   url isnt /^\./ or url isnt /^(http(?:s|):|data:|\/)/
 
+isAbsolute = (url) ->
+  url is /^\//
+
 urlConvert = (file, options) ->
-  cssPath = path.dirname file
+  cssPath = path.dirname file.path
   cssContent = file.contents.toString!
 
   rework cssContent .use reworkUrl (url) ->
-    if isDataUrl(url)
-      return url
+    # 跳过data路径
+    return url if isDataUrl url
 
-    if options.convertType is 'network'
-      baseName = path.basename url
-      urlPath = path.resolve cssPath, path.dirname url
-      relativeUrlPath = path.relative root, urlPath
+    # 如果目标路径是网络路标
+    if options.type is \network or isNetworkUrl options.path
+      return url if isNetworkUrl url
 
-      return "#{options.convertTo}/#relativeUrlPath/#baseName"
+      options.path = options.path.replace /\/$/, ''
+
+      # 相对路径
+      if isRelative url
+        baseName = path.basename url
+        urlPath = path.resolve cssPath, path.dirname url
+        relativeUrlPath = path.relative options.root, urlPath
+
+        "#{options.path}/#relativeUrlPath/#baseName"
+      # 绝对路径
+      else if isAbsolute url
+        url.replace /^\//, options.path
+
+    # 如果目标路径是绝对路径
+    else if options.type is \absolute or isAbsolute options.path
+      return url if isAbsolute url or isNetworkUrl url
+
+      # 相对路径
+      if isRelative url
+        baseName = path.basename url
+        urlPath = path.resolve cssPath, path.dirname url
+        relativeUrlPath = path.relative options.root, urlPath
+
+        "#{options.path}#relativeUrlPath/#baseName"
+
+    else
+      url
+
+  .toString!
 
 cssUrlConvert = (options) ->
   options ||= {}
