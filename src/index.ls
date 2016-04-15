@@ -25,6 +25,10 @@ isRelative = (url) ->
 isAbsolute = (url) ->
   url is /^\//
 
+checkIgnore = (url, rules) ->
+  unless rules
+    return false
+
 urlConvert = (file, options) ->
   cssPath = path.dirname file.path
   cssContent = file.contents.toString!
@@ -32,6 +36,8 @@ urlConvert = (file, options) ->
   rework cssContent .use reworkUrl (url) ->
     # 跳过data路径
     return url if isDataUrl url
+    # 过滤
+    return url if !isIgnore(url, options.ignore)
 
     # 如果目标路径是网络路标
     if options.type is \network or isNetworkUrl options.path
