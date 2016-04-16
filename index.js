@@ -9,7 +9,7 @@ through = require('through2');
  *   root 根目录
  *   path 路径
  *   type 转换到relative相对路径，absolute约对路径，network网络路径
- *   match 匹配的类型
+ *   map 从一个类型映射到另一个类型
  *   ignore 过滤
  *
  */
@@ -26,8 +26,26 @@ isAbsolute = function(url){
   return /^\//.exec(url);
 };
 checkIgnore = function(url, rules){
+  var i$, len$, key, rule;
   if (!rules) {
     return false;
+  }
+  if (!Array.isArray(rules)) {
+    rules = [].concat(rules);
+  }
+  for (i$ = 0, len$ = rules.length; i$ < len$; ++i$) {
+    key = i$;
+    rule = rules[i$];
+    if (typeof rule === 'string') {
+      if (url === rule) {
+        return false;
+      }
+    }
+    if (typeof rule === 'object' && rule !== null && rule.constructor === RegExp) {
+      if (rule.match(url) !== null) {
+        return false;
+      }
+    }
   }
 };
 urlConvert = function(file, options){

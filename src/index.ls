@@ -8,7 +8,7 @@ through = require \through2
  *   root 根目录
  *   path 路径
  *   type 转换到relative相对路径，absolute约对路径，network网络路径
- *   match 匹配的类型
+ *   map 从一个类型映射到另一个类型
  *   ignore 过滤
  *
  */
@@ -28,6 +28,16 @@ isAbsolute = (url) ->
 checkIgnore = (url, rules) ->
   unless rules
     return false
+
+  unless Array.isArray(rules)
+    rules = [].concat rules
+
+  for rule, key in rules
+    if typeof rule is 'string'
+      return false if url is rule
+
+    if typeof rule is 'object' and rule isnt null and rule.constructor is RegExp
+      return false if rule.match(url) isnt null
 
 urlConvert = (file, options) ->
   cssPath = path.dirname file.path
