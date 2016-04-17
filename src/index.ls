@@ -39,6 +39,16 @@ checkIgnore = (url, rules) ->
     if typeof rule is 'object' and rule isnt null and rule.constructor is RegExp
       return false if rule.match(url) isnt null
 
+# 根据映射表替换url中的部份内容
+urlMap = (url, maps) ->
+  unless Array.isArray maps
+    maps = [].concat maps
+
+  for map, key in maps
+    mapMatch = new RegExp "^#key"
+    if reg.text(url) isnt null
+      return url.replace mapMatch, map
+
 urlConvert = (file, options) ->
   cssPath = path.dirname file.path
   cssContent = file.contents.toString!
@@ -48,6 +58,9 @@ urlConvert = (file, options) ->
     return url if isDataUrl url
     # 过滤
     return url if !isIgnore(url, options.ignore)
+
+    if options.map
+      url = urlMap url, options.map
 
     # 如果目标路径是网络路标
     if options.type is \network or isNetworkUrl options.path
