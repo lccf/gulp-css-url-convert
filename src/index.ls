@@ -54,7 +54,7 @@ urlConvert = (file, options) ->
   cssContent = file.contents.toString!
   replaceCount = 0
 
-  newCssContent = rework cssContent .use reworkUrl (url) ->
+  urlReplace = (url) ->
     # 跳过data路径
     return url if isDataUrl url
     # 过滤
@@ -98,7 +98,23 @@ urlConvert = (file, options) ->
     else
       url
 
-  .toString!
+  if options.useRework
+    try
+      newCssContent = rework cssContent .use reworkUrl urlReplace
+
+      .toString!
+
+    catch e
+      console.error "css file: #{file.path}"
+      console.error e.stack
+      throw new Error "rework error"
+  else
+    try
+      newCssContent = cssContent.replace /(url\(\s*['"]?)([^'"\)]*)(['"]?\s*\))/g, (all, start, url, end)->
+        if url.length
+          url = urlReplace url
+
+        "#{start}#{url}#{end}"
 
   if replaceCount > 0 then newCssContent else false
 
@@ -109,7 +125,6 @@ cssUrlConvert = (options) ->
     cssContent = urlConvert file, options
     if cssContent
       file.contents = new Buffer cssContent
-      console.log "filechange #{file.path}"
 
     this.push file
     cb!

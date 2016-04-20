@@ -63,11 +63,11 @@ urlMap = function(url, maps){
   }
 };
 urlConvert = function(file, options){
-  var cssPath, cssContent, replaceCount, newCssContent;
+  var cssPath, cssContent, replaceCount, urlReplace, newCssContent, e;
   cssPath = path.dirname(file.path);
   cssContent = file.contents.toString();
   replaceCount = 0;
-  newCssContent = rework(cssContent).use(reworkUrl(function(url){
+  urlReplace = function(url){
     var baseName, urlPath, relativeUrlPath;
     if (isDataUrl(url)) {
       return url;
@@ -107,7 +107,26 @@ urlConvert = function(file, options){
     } else {
       return url;
     }
-  })).toString();
+  };
+  if (options.useRework) {
+    try {
+      newCssContent = rework(cssContent).use(reworkUrl(urlReplace)).toString();
+    } catch (e$) {
+      e = e$;
+      console.error("css file: " + file.path);
+      console.error(e.stack);
+      throw new Error("rework error");
+    }
+  } else {
+    try {
+      newCssContent = cssContent.replace(/(url\(\s*['"]?)([^'"\)]*)(['"]?\s*\))/g, function(all, start, url, end){
+        if (url.length) {
+          url = urlReplace(url);
+        }
+        return start + "" + url + end;
+      });
+    } catch (e$) {}
+  }
   if (replaceCount > 0) {
     return newCssContent;
   } else {
@@ -121,7 +140,6 @@ cssUrlConvert = function(options){
     cssContent = urlConvert(file, options);
     if (cssContent) {
       file.contents = new Buffer(cssContent);
-      console.log("filechange " + file.path);
     }
     this.push(file);
     return cb();
