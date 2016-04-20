@@ -25,7 +25,7 @@ isRelative = (url) ->
 isAbsolute = (url) ->
   url is /^\//
 
-checkIgnore = (url, rules) ->
+isIgnore = (url, rules) ->
   unless rules
     return false
 
@@ -52,12 +52,13 @@ urlMap = (url, maps) ->
 urlConvert = (file, options) ->
   cssPath = path.dirname file.path
   cssContent = file.contents.toString!
+  replaceCount = 0
 
-  rework cssContent .use reworkUrl (url) ->
+  newCssContent = rework cssContent .use reworkUrl (url) ->
     # 跳过data路径
     return url if isDataUrl url
     # 过滤
-    return url if !isIgnore(url, options.ignore)
+    return url if isIgnore(url, options.ignore)
 
     if options.map
       url = urlMap url, options.map
@@ -74,9 +75,11 @@ urlConvert = (file, options) ->
         urlPath = path.resolve cssPath, path.dirname url
         relativeUrlPath = path.relative options.root, urlPath
 
+        replaceCount += 1
         "#{options.path}/#relativeUrlPath/#baseName"
       # 绝对路径
       else if isAbsolute url
+        replaceCount += 1
         url.replace /^\//, options.path
 
     # 如果目标路径是绝对路径
@@ -89,6 +92,7 @@ urlConvert = (file, options) ->
         urlPath = path.resolve cssPath, path.dirname url
         relativeUrlPath = path.relative options.root, urlPath
 
+        replaceCount += 1
         "#{options.path}#relativeUrlPath/#baseName"
 
     else
@@ -96,12 +100,16 @@ urlConvert = (file, options) ->
 
   .toString!
 
+  if replaceCount > 0 then newCssContent else false
+
 cssUrlConvert = (options) ->
   options ||= {}
 
   through.obj (file, enc, cb) ->
     cssContent = urlConvert file, options
-    file.contents = new Buffer cssContent
+    if cssContent
+      file.contents = new Buffer cssContent
+      console.log "filechange #{file.path}"
 
     this.push file
     cb!
