@@ -17,10 +17,10 @@ isDataUrl = function(url){
   return /^data:image/.exec(url);
 };
 isNetworkUrl = function(url){
-  return /^http(?:s|):/.exec(url);
+  return /^(?:http(?:s|):|)\/\//.exec(url);
 };
 isRelative = function(url){
-  return !/^\./.test(url) || !/^(http(?:s|):|data:|\/)/.test(url);
+  return !/^\./.test(url) || !/^(?:(?:http(?:s|):|)\/\/|data:|\/)/.test(url);
 };
 isAbsolute = function(url){
   return /^\//.exec(url);

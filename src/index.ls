@@ -17,10 +17,10 @@ isDataUrl = (url) ->
   url is /^data:image/
 
 isNetworkUrl = (url) ->
-  url is /^http(?:s|):/
+  url is /^(?:http(?:s|):|)\/\//
 
 isRelative = (url) ->
-  url isnt /^\./ or url isnt /^(http(?:s|):|data:|\/)/
+  url isnt /^\./ or url isnt /^(?:(?:http(?:s|):|)\/\/|data:|\/)/
 
 isAbsolute = (url) ->
   url is /^\//
