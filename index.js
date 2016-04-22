@@ -38,12 +38,12 @@ isIgnore = function(url, rules){
     rule = rules[i$];
     if (typeof rule === 'string') {
       if (url === rule) {
-        return false;
+        return true;
       }
     }
     if (typeof rule === 'object' && rule !== null && rule.constructor === RegExp) {
       if (rule.match(url) !== null) {
-        return false;
+        return true;
       }
     }
   }

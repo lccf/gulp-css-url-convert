@@ -34,10 +34,10 @@ isIgnore = (url, rules) ->
 
   for rule, key in rules
     if typeof rule is 'string'
-      return false if url is rule
+      return true if url is rule
 
     if typeof rule is 'object' and rule isnt null and rule.constructor is RegExp
-      return false if rule.match(url) isnt null
+      return true if rule.match(url) isnt null
 
 # 根据映射表替换url中的部份内容
 urlMap = (url, maps) ->
